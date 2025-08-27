@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kerala TravelBot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e6ecf0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .chat-container {
+      width: 420px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-header {
+      background: #f4f4f4;
+      padding: 15px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: black; /* heading in black */
+    }
+    .chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      background: #fafafa;
+    }
+    .message {
+      margin: 10px 0;
+      display: flex;
+      align-items: flex-end;
+    }
+    .bot {
+      justify-content: flex-start;
+    }
+    .user {
+      justify-content: flex-end;
+    }
+    .bot .bubble {
+      background: #f1f0f0;
+      color: black;
+      border-radius: 15px;
+      padding: 10px 15px;
+      max-width: 70%;
+      position: relative;
+    }
+    .user .bubble {
+      background: #4a90e2;
+      color: white;
+      border-radius: 15px;
+      padding: 10px 15px;
+      max-width: 70%;
+      position: relative;
+    }
+    .avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin: 0 10px;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    .chat-input input {
+      flex: 1;
+      border: none;
+      padding: 15px;
+      font-size: 14px;
+      outline: none;
+    }
+    .chat-input button {
+      background: #00c853;
+      border: none;
+      padding: 15px 20px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .time {
+      font-size: 10px;
+      color: gray;
+      margin-top: 3px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">🌴 Kerala TravelBot</div>
+    <div class="chat-box" id="chat-box">
+      <div class="message bot">
+        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" class="avatar">
+        <div class="bubble">
+          Hi, I’m your Kerala Travel Guide! 🌿✨<br>
+          <span class="time">Now</span>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Type your question...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const msg = input.value.trim();
+      if (msg === "") return;
+
+      const chatBox = document.getElementById("chat-box");
+
+      // User message
+      const userDiv = document.createElement("div");
+      userDiv.classList.add("message", "user");
+      userDiv.innerHTML = `
+        <div class="bubble">${msg}<br>
+          <span class="time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+        </div>
+        <img src="https://cdn-icons-png.flaticon.com/512/1946/1946429.png" class="avatar">
+      `;
+      chatBox.appendChild(userDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      input.value = "";
+
+      // Fetch response from Flask backend
+      try {
+        const response = await fetch("/get", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: msg })
+        });
+        const data = await response.json();
+
+        // Bot message
+        const botDiv = document.createElement("div");
+        botDiv.classList.add("message", "bot");
+        botDiv.innerHTML = `
+          <img src="https://cdn-icons-png.flaticon.com/512/4712/4712100.png" class="avatar">
+          <div class="bubble">${data.response}<br>
+            <span class="time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+          </div>
+        `;
+        chatBox.appendChild(botDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+  </script>
+</body>
+</html>
